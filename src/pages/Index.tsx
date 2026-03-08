@@ -92,8 +92,8 @@ const Index = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: Search, title: "Ingresa tu código", desc: "Tu fotógrafo te dará un código único para acceder a las fotos del evento." },
-              { icon: Camera, title: "Tómate una selfie", desc: "Nuestra IA compara tu rostro con miles de fotos en segundos." },
+              { icon: Search, title: "Ingresa tu código", desc: "Tu fotógrafo te dará un código único para acceder a las fotos de tu evento." },
+              { icon: Camera, title: "Tómate una selfie", desc: "Nuestra IA compara tu rostro con todas las fotos en segundos." },
               { icon: Shield, title: "Descarga tus fotos", desc: "Recibe 1 foto gratis y compra las demás por solo $2 cada una." },
             ].map((step, i) => (
               <div key={i} className="glass-card p-6 text-center animate-fade-up" style={{ animationDelay: `${i * 150}ms` }}>
