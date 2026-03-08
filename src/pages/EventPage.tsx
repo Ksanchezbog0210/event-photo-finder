@@ -35,6 +35,41 @@ const EventPage = () => {
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [purchaseRequestId, setPurchaseRequestId] = useState<string | null>(null);
+  const [freePhotoId, setFreePhotoId] = useState<string | null>(null);
+  const [freePhotoUsed, setFreePhotoUsed] = useState(false);
+
+  // Load free photo state from localStorage
+  useEffect(() => {
+    if (!eventId) return;
+    const key = `plusspaz_free_${eventId}`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.used) {
+        setFreePhotoUsed(true);
+        setFreePhotoId(null);
+      } else {
+        setFreePhotoId(parsed.photoId);
+        setFreePhotoUsed(false);
+      }
+    }
+  }, [eventId]);
+
+  const saveFreePhoto = (photoId: string) => {
+    if (!eventId) return;
+    const key = `plusspaz_free_${eventId}`;
+    localStorage.setItem(key, JSON.stringify({ photoId, used: false }));
+    setFreePhotoId(photoId);
+    setFreePhotoUsed(false);
+  };
+
+  const markFreePhotoUsed = () => {
+    if (!eventId) return;
+    const key = `plusspaz_free_${eventId}`;
+    localStorage.setItem(key, JSON.stringify({ photoId: freePhotoId, used: true }));
+    setFreePhotoUsed(true);
+    setFreePhotoId(null);
+  };
 
   const fetchEvent = useCallback(async () => {
     if (!eventId) return;
