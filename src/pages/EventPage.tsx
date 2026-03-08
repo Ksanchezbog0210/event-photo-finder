@@ -169,6 +169,11 @@ const EventPage = () => {
         })
         .filter((r): r is MatchedPhoto => r !== null);
 
+      // Assign free photo: use stored one if exists, otherwise first result
+      if (!freePhotoUsed && !freePhotoId && results.length > 0) {
+        saveFreePhoto(results[0].id);
+      }
+
       setMatchedPhotos(results);
       setIsProcessing(false);
       setView("results");
