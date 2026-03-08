@@ -1,4 +1,4 @@
-import { Camera } from "lucide-react";
+import { Camera, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Header = () => {
@@ -17,6 +17,13 @@ const Header = () => {
           <span className="text-sm text-muted-foreground hidden sm:inline">
             Encuentra tus fotos al instante
           </span>
+          <Link
+            to="/admin"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            title="Panel admin"
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
         </nav>
       </div>
     </header>
