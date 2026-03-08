@@ -14,16 +14,255 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      event_photos: {
+        Row: {
+          created_at: string
+          event_id: string
+          height: number | null
+          id: string
+          original_filename: string | null
+          storage_path: string
+          thumbnail_path: string | null
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          height?: number | null
+          id?: string
+          original_filename?: string | null
+          storage_path: string
+          thumbnail_path?: string | null
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          height?: number | null
+          id?: string
+          original_filename?: string | null
+          storage_path?: string
+          thumbnail_path?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_photos_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          admin_id: string
+          code: string
+          created_at: string
+          currency: string
+          date: string
+          description: string | null
+          free_photos: number
+          id: string
+          is_active: boolean
+          location: string | null
+          name: string
+          price_per_photo: number
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          code: string
+          created_at?: string
+          currency?: string
+          date: string
+          description?: string | null
+          free_photos?: number
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name: string
+          price_per_photo?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          code?: string
+          created_at?: string
+          currency?: string
+          date?: string
+          description?: string | null
+          free_photos?: number
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          price_per_photo?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      purchase_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          client_name: string | null
+          client_phone: string | null
+          created_at: string
+          currency: string
+          event_id: string
+          id: string
+          payment_method: string
+          payment_reference: string | null
+          photo_ids: string[]
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          currency?: string
+          event_id: string
+          id?: string
+          payment_method?: string
+          payment_reference?: string | null
+          photo_ids: string[]
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          currency?: string
+          event_id?: string
+          id?: string
+          payment_method?: string
+          payment_reference?: string | null
+          photo_ids?: string[]
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      search_requests: {
+        Row: {
+          client_name: string | null
+          client_phone: string | null
+          created_at: string
+          event_id: string
+          id: string
+          matched_photo_ids: string[] | null
+          selfie_path: string | null
+          status: string
+        }
+        Insert: {
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          matched_photo_ids?: string[] | null
+          selfie_path?: string | null
+          status?: string
+        }
+        Update: {
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          matched_photo_ids?: string[] | null
+          selfie_path?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +389,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
