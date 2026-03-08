@@ -82,6 +82,7 @@ const AdminDashboard = () => {
     if (!user) return;
     fetchEvents();
     fetchPurchases();
+    fetchAdmins();
   }, [user]);
 
   const fetchEvents = async () => {
