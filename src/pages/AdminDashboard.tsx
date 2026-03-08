@@ -111,6 +111,43 @@ const AdminDashboard = () => {
     if (data) setPurchases(data);
   };
 
+  const fetchAdmins = async () => {
+    const { data, error } = await supabase.functions.invoke("manage-admins", {
+      body: { action: "list" },
+    });
+    if (!error && data?.admins) setAdminUsers(data.admins);
+  };
+
+  const addAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminEmail.trim()) return;
+    setAddingAdmin(true);
+    const { data, error } = await supabase.functions.invoke("manage-admins", {
+      body: { action: "add", email: newAdminEmail.trim().toLowerCase() },
+    });
+    setAddingAdmin(false);
+    if (error || data?.error) {
+      toast.error(data?.error || "Error al agregar admin");
+      return;
+    }
+    toast.success("Administrador agregado");
+    setNewAdminEmail("");
+    fetchAdmins();
+  };
+
+  const removeAdmin = async (userId: string, email: string) => {
+    if (!confirm(`¿Remover a ${email} como administrador?`)) return;
+    const { data, error } = await supabase.functions.invoke("manage-admins", {
+      body: { action: "remove", user_id: userId },
+    });
+    if (error || data?.error) {
+      toast.error(data?.error || "Error al remover admin");
+      return;
+    }
+    toast.success("Administrador removido");
+    fetchAdmins();
+  };
+
   const openEditEvent = (evt: Event) => {
     setEditingEvent(evt);
     setNewName(evt.name);
