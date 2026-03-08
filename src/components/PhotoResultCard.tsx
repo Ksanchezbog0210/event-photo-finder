@@ -8,7 +8,9 @@ interface PhotoResultCardProps {
   index: number;
   isFree: boolean;
   isPurchased: boolean;
+  pricePerPhoto: number;
   onRequestPurchase: () => void;
+  onDownload: () => void;
 }
 
 const PhotoResultCard = ({
@@ -17,7 +19,9 @@ const PhotoResultCard = ({
   index,
   isFree,
   isPurchased,
+  pricePerPhoto,
   onRequestPurchase,
+  onDownload,
 }: PhotoResultCardProps) => {
   const confidence = Math.round(matchScore * 100);
 
@@ -36,7 +40,6 @@ const PhotoResultCard = ({
         ) : (
           <WatermarkImage src={src} alt={`Resultado ${index + 1}`} />
         )}
-        {/* Match badge */}
         <div className="absolute top-2 right-2 flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur-sm px-2.5 py-1 text-xs font-display">
           <div
             className={`h-2 w-2 rounded-full ${
@@ -57,14 +60,24 @@ const PhotoResultCard = ({
       </div>
       <div className="p-3">
         {isFree ? (
-          <Button variant="outline" size="sm" className="w-full border-primary/30 text-primary hover:bg-primary/10 font-display">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDownload}
+            className="w-full border-primary/30 text-primary hover:bg-primary/10 font-display"
+          >
             <Download className="mr-2 h-3.5 w-3.5" />
             Descargar gratis
           </Button>
         ) : isPurchased ? (
-          <Button variant="outline" size="sm" className="w-full border-green-500/30 text-green-400 hover:bg-green-500/10 font-display">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDownload}
+            className="w-full border-green-500/30 text-green-400 hover:bg-green-500/10 font-display"
+          >
             <Check className="mr-2 h-3.5 w-3.5" />
-            Descarga disponible
+            Descargar
           </Button>
         ) : (
           <Button
@@ -73,7 +86,7 @@ const PhotoResultCard = ({
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-display"
           >
             <Lock className="mr-2 h-3.5 w-3.5" />
-            $2.00 — Comprar
+            ${pricePerPhoto.toFixed(2)} — Comprar
           </Button>
         )}
       </div>
