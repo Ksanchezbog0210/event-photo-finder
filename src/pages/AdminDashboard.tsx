@@ -309,6 +309,14 @@ const AdminDashboard = () => {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => openEditEvent(evt)}
+                          className="border-border text-foreground hover:bg-secondary"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => navigate(`/evento/${evt.id}`)}
                           className="border-border text-foreground hover:bg-secondary"
                         >
