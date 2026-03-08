@@ -5,25 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import heroBanner from "@/assets/hero-banner.jpg";
-import { getEventByCode } from "@/data/mockData";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Index = () => {
   const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim()) {
       toast.error("Ingresa un código de acceso");
       return;
     }
-    const event = getEventByCode(code.trim());
-    if (!event) {
+    setLoading(true);
+    const { data: event, error } = await supabase
+      .from("events")
+      .select("*")
+      .eq("code", code.trim().toUpperCase())
+      .eq("is_active", true)
+      .maybeSingle();
+
+    setLoading(false);
+    if (error || !event) {
       toast.error("Código no encontrado. Verifica con tu fotógrafo.");
       return;
     }
-    navigate(`/evento/${event.id}`, { state: { event } });
+    navigate(`/evento/${event.id}`);
   };
 
   return (
@@ -32,13 +41,8 @@ const Index = () => {
 
       {/* Hero */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-16">
-        {/* Background image */}
         <div className="absolute inset-0">
-          <img
-            src={heroBanner}
-            alt="Evento deportivo"
-            className="w-full h-full object-cover"
-          />
+          <img src={heroBanner} alt="Evento deportivo" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/60 to-background" />
         </div>
 
@@ -55,11 +59,10 @@ const Index = () => {
             </h1>
 
             <p className="text-muted-foreground text-lg max-w-lg mx-auto leading-relaxed">
-              Ingresa tu código de evento, tómate una selfie y descubre 
+              Ingresa tu código de evento, tómate una selfie y descubre
               todas las fotos donde apareces. Así de simple.
             </p>
 
-            {/* Code Input */}
             <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
               <div className="glass-card p-2 flex gap-2">
                 <Input
@@ -70,14 +73,12 @@ const Index = () => {
                 />
                 <Button
                   type="submit"
+                  disabled={loading}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 font-display shrink-0"
                 >
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-3">
-                Prueba con: <button type="button" onClick={() => setCode("CARRERA2026")} className="text-primary hover:underline font-semibold">CARRERA2026</button>
-              </p>
             </form>
           </div>
         </div>
@@ -91,48 +92,25 @@ const Index = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              {
-                icon: Search,
-                title: "Ingresa tu código",
-                desc: "Tu fotógrafo te dará un código único para acceder a las fotos del evento.",
-              },
-              {
-                icon: Camera,
-                title: "Tómate una selfie",
-                desc: "Nuestra IA compara tu rostro con miles de fotos en segundos.",
-              },
-              {
-                icon: Shield,
-                title: "Descarga tus fotos",
-                desc: "Recibe 1 foto gratis y compra las demás por solo $2 cada una.",
-              },
+              { icon: Search, title: "Ingresa tu código", desc: "Tu fotógrafo te dará un código único para acceder a las fotos del evento." },
+              { icon: Camera, title: "Tómate una selfie", desc: "Nuestra IA compara tu rostro con miles de fotos en segundos." },
+              { icon: Shield, title: "Descarga tus fotos", desc: "Recibe 1 foto gratis y compra las demás por solo $2 cada una." },
             ].map((step, i) => (
-              <div
-                key={i}
-                className="glass-card p-6 text-center animate-fade-up"
-                style={{ animationDelay: `${i * 150}ms` }}
-              >
+              <div key={i} className="glass-card p-6 text-center animate-fade-up" style={{ animationDelay: `${i * 150}ms` }}>
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
                   <step.icon className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {step.desc}
-                </p>
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2">{step.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container text-center">
-          <p className="text-sm text-muted-foreground">
-            © 2026 Plusspaz — Fotografía deportiva profesional
-          </p>
+          <p className="text-sm text-muted-foreground">© 2026 Plusspaz — Fotografía deportiva profesional</p>
         </div>
       </footer>
     </div>
