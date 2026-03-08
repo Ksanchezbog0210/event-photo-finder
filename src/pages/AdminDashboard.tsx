@@ -25,6 +25,7 @@ import {
   XCircle,
   Clock,
   Copy,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
@@ -38,10 +39,11 @@ const AdminDashboard = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [purchases, setPurchases] = useState<PurchaseRequest[]>([]);
   const [showNewEvent, setShowNewEvent] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
 
-  // New event form
+  // New/Edit event form
   const [newName, setNewName] = useState("");
   const [newCode, setNewCode] = useState("");
   const [newDate, setNewDate] = useState("");
@@ -97,27 +99,59 @@ const AdminDashboard = () => {
     if (data) setPurchases(data);
   };
 
-  const createEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    const { error } = await supabase.from("events").insert({
-      admin_id: user.id,
-      name: newName,
-      code: newCode.toUpperCase(),
-      date: newDate,
-      location: newLocation,
-      price_per_photo: parseFloat(newPrice),
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Evento creado");
+  const openEditEvent = (evt: Event) => {
+    setEditingEvent(evt);
+    setNewName(evt.name);
+    setNewCode(evt.code);
+    setNewDate(evt.date);
+    setNewLocation(evt.location || "");
+    setNewPrice(String(evt.price_per_photo));
+    setShowNewEvent(true);
+  };
+
+  const resetForm = () => {
     setShowNewEvent(false);
+    setEditingEvent(null);
     setNewName("");
     setNewCode("");
     setNewDate("");
     setNewLocation("");
+    setNewPrice("2.00");
+  };
+
+  const handleEventSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    if (editingEvent) {
+      const { error } = await supabase.from("events").update({
+        name: newName,
+        code: newCode.toUpperCase(),
+        date: newDate,
+        location: newLocation,
+        price_per_photo: parseFloat(newPrice),
+      }).eq("id", editingEvent.id);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Evento actualizado");
+    } else {
+      const { error } = await supabase.from("events").insert({
+        admin_id: user.id,
+        name: newName,
+        code: newCode.toUpperCase(),
+        date: newDate,
+        location: newLocation,
+        price_per_photo: parseFloat(newPrice),
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Evento creado");
+    }
+    resetForm();
     fetchEvents();
   };
 
@@ -275,6 +309,14 @@ const AdminDashboard = () => {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => openEditEvent(evt)}
+                          className="border-border text-foreground hover:bg-secondary"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => navigate(`/evento/${evt.id}`)}
                           className="border-border text-foreground hover:bg-secondary"
                         >
@@ -348,16 +390,18 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      {/* New Event Dialog */}
-      <Dialog open={showNewEvent} onOpenChange={setShowNewEvent}>
+      {/* New/Edit Event Dialog */}
+      <Dialog open={showNewEvent} onOpenChange={(open) => { if (!open) resetForm(); }}>
         <DialogContent className="bg-card border-border text-foreground max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-display text-foreground">Nuevo evento</DialogTitle>
+            <DialogTitle className="font-display text-foreground">
+              {editingEvent ? "Editar evento" : "Nuevo evento"}
+            </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Crea un evento y comparte el código con tus clientes
+              {editingEvent ? "Modifica los detalles del evento" : "Crea un evento y comparte el código con tus clientes"}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={createEvent} className="space-y-3">
+          <form onSubmit={handleEventSubmit} className="space-y-3">
             <div className="space-y-1.5">
               <Label className="text-foreground text-sm">Nombre del evento</Label>
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="Maratón San José 2026" className="bg-secondary border-border text-foreground" />
@@ -381,7 +425,7 @@ const AdminDashboard = () => {
               <Input value={newLocation} onChange={(e) => setNewLocation(e.target.value)} placeholder="San José, Costa Rica" className="bg-secondary border-border text-foreground" />
             </div>
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-display">
-              Crear evento
+              {editingEvent ? "Guardar cambios" : "Crear evento"}
             </Button>
           </form>
         </DialogContent>
