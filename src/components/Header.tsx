@@ -10,7 +10,7 @@ const Header = () => {
             <Camera className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="font-display text-lg font-semibold tracking-tight text-foreground">
-            Foto<span className="text-primary">Find</span>
+            Pluss<span className="text-primary">paz</span>
           </span>
         </Link>
         <nav className="flex items-center gap-4">

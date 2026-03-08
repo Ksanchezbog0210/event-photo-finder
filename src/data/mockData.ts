@@ -50,7 +50,7 @@ export const MOCK_EVENTS: EventData[] = [
 
 export const SINPE_INFO = {
   phone: "89406622",
-  name: "FotoFind CR",
+  name: "Plusspaz CR",
   banco: "Banco Nacional de Costa Rica",
 };
 
