@@ -346,19 +346,22 @@ const EventPage = () => {
               )}
 
               <div className="photo-grid">
-                {matchedPhotos.map((photo, i) => (
-                  <PhotoResultCard
-                    key={photo.id}
-                    src={photo.publicUrl}
-                    matchScore={photo.matchScore}
-                    index={i}
-                    isFree={i === 0}
-                    isPurchased={purchasedIds.has(photo.id)}
-                    pricePerPhoto={Number(event.price_per_photo)}
-                    onRequestPurchase={() => handlePurchaseRequest(photo.id)}
-                    onDownload={() => handleDownload(photo)}
-                  />
-                ))}
+                {matchedPhotos.map((photo, i) => {
+                  const isThisFree = !freePhotoUsed && photo.id === freePhotoId;
+                  return (
+                    <PhotoResultCard
+                      key={photo.id}
+                      src={photo.publicUrl}
+                      matchScore={photo.matchScore}
+                      index={i}
+                      isFree={isThisFree}
+                      isPurchased={purchasedIds.has(photo.id)}
+                      pricePerPhoto={Number(event.price_per_photo)}
+                      onRequestPurchase={() => handlePurchaseRequest(photo.id)}
+                      onDownload={() => handleDownload(photo, isThisFree)}
+                    />
+                  );
+                })}
               </div>
             </div>
           )}
