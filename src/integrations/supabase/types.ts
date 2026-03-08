@@ -141,6 +141,7 @@ export type Database = {
           event_id: string
           id: string
           payment_method: string
+          payment_proof_path: string | null
           payment_reference: string | null
           photo_ids: string[]
           status: string
@@ -157,6 +158,7 @@ export type Database = {
           event_id: string
           id?: string
           payment_method?: string
+          payment_proof_path?: string | null
           payment_reference?: string | null
           photo_ids: string[]
           status?: string
@@ -173,6 +175,7 @@ export type Database = {
           event_id?: string
           id?: string
           payment_method?: string
+          payment_proof_path?: string | null
           payment_reference?: string | null
           photo_ids?: string[]
           status?: string

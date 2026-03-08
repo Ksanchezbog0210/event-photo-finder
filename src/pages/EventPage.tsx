@@ -193,8 +193,27 @@ const EventPage = () => {
     setPaymentModal(true);
   };
 
-  const handlePaymentConfirmed = async (clientName: string, clientPhone: string) => {
+  const handlePaymentConfirmed = async (clientName: string, clientPhone: string, proofFile: File | null) => {
     if (!event || selectedPhotoIds.length === 0) return;
+    
+    let proofPath: string | null = null;
+    
+    // Upload proof file if provided
+    if (proofFile) {
+      const fileExt = proofFile.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("payment-proofs")
+        .upload(fileName, proofFile);
+      
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        toast.error("Error al subir el comprobante");
+        return;
+      }
+      proofPath = fileName;
+    }
+    
     const { data, error } = await supabase.from("purchase_requests").insert({
       event_id: event.id,
       photo_ids: selectedPhotoIds,
@@ -203,6 +222,7 @@ const EventPage = () => {
       total_amount: selectedPhotoIds.length * Number(event.price_per_photo),
       currency: event.currency,
       payment_method: "sinpe",
+      payment_proof_path: proofPath,
     }).select("id").single();
 
     if (error) {

@@ -175,6 +175,22 @@ const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onCo
                 className="bg-secondary border-border text-foreground"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-foreground text-sm">Comprobante de pago (opcional)</Label>
+              <div className="relative">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                  className="bg-secondary border-border text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                />
+              </div>
+              {proofFile && (
+                <p className="text-xs text-muted-foreground">
+                  ✓ {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Instructions */}
