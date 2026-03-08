@@ -93,22 +93,56 @@ const EventPage = () => {
     return () => clearInterval(interval);
   }, [purchaseRequestId]);
 
-  const handleCapture = (_imageData: string) => {
+  const handleCapture = async (imageData: string) => {
     setIsProcessing(true);
-    // Simulate face recognition: randomly select ~60% of photos as matches
-    setTimeout(() => {
-      const shuffled = [...photos].sort(() => Math.random() - 0.5);
-      const matchCount = Math.max(2, Math.ceil(photos.length * 0.6));
-      const results: MatchedPhoto[] = shuffled.slice(0, matchCount).map((p) => ({
-        ...p,
-        matchScore: 0.65 + Math.random() * 0.33, // 65-98%
-      })).sort((a, b) => b.matchScore - a.matchScore);
+    try {
+      // Extract base64 data from data URL
+      const base64 = imageData.replace(/^data:image\/\w+;base64,/, "");
+
+      const { data, error } = await supabase.functions.invoke("face-match", {
+        body: { selfieBase64: base64, eventId },
+      });
+
+      if (error) {
+        console.error("Face match error:", error);
+        toast.error("Error al buscar tus fotos. Intenta de nuevo.");
+        setIsProcessing(false);
+        return;
+      }
+
+      if (data?.error) {
+        toast.error(data.error);
+        setIsProcessing(false);
+        return;
+      }
+
+      const matches: { photoId: string; score: number }[] = data?.matches || [];
+
+      if (matches.length === 0) {
+        toast.info("No encontramos coincidencias. Intenta con otra selfie con mejor iluminación.");
+        setIsProcessing(false);
+        setView("selfie");
+        return;
+      }
+
+      // Map matches to photo data
+      const results: MatchedPhoto[] = matches
+        .map((m) => {
+          const photo = photos.find((p) => p.id === m.photoId);
+          if (!photo) return null;
+          return { ...photo, matchScore: m.score };
+        })
+        .filter((r): r is MatchedPhoto => r !== null);
 
       setMatchedPhotos(results);
       setIsProcessing(false);
       setView("results");
-      toast.success(`¡Encontramos ${results.length} fotos donde apareces!`);
-    }, 2500);
+      toast.success(`¡Encontramos ${results.length} foto${results.length !== 1 ? "s" : ""} donde apareces!`);
+    } catch (err) {
+      console.error("Face match exception:", err);
+      toast.error("Error de conexión. Intenta de nuevo.");
+      setIsProcessing(false);
+    }
   };
 
   const handlePurchaseRequest = (photoId: string) => {
