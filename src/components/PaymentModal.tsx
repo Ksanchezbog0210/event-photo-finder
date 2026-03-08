@@ -48,10 +48,11 @@ const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onCo
   const handleConfirm = async () => {
     if (!clientName.trim()) return;
     setSending(true);
-    await onConfirm(clientName.trim(), clientPhone.trim());
+    await onConfirm(clientName.trim(), clientPhone.trim(), proofFile);
     setSending(false);
     setClientName("");
     setClientPhone("");
+    setProofFile(null);
   };
 
   const amountColones = (totalAmount * 530).toLocaleString();
