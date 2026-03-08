@@ -54,6 +54,8 @@ const AdminDashboard = () => {
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [addingAdmin, setAddingAdmin] = useState(false);
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
+  const [showProof, setShowProof] = useState(false);
 
   // New/Edit event form
   const [newName, setNewName] = useState("");
