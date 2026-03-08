@@ -36,6 +36,11 @@ import type { Database } from "@/integrations/supabase/types";
 type Event = Database["public"]["Tables"]["events"]["Row"];
 type PurchaseRequest = Database["public"]["Tables"]["purchase_requests"]["Row"];
 
+interface AdminUser {
+  user_id: string;
+  email: string;
+}
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
@@ -45,6 +50,9 @@ const AdminDashboard = () => {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [addingAdmin, setAddingAdmin] = useState(false);
 
   // New/Edit event form
   const [newName, setNewName] = useState("");
