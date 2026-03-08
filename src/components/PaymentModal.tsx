@@ -35,6 +35,7 @@ const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onCo
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("sinpe");
 
