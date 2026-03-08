@@ -26,12 +26,20 @@ import {
   Clock,
   Copy,
   Pencil,
+  Shield,
+  UserPlus,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
 type PurchaseRequest = Database["public"]["Tables"]["purchase_requests"]["Row"];
+
+interface AdminUser {
+  user_id: string;
+  email: string;
+}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -42,6 +50,9 @@ const AdminDashboard = () => {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [addingAdmin, setAddingAdmin] = useState(false);
 
   // New/Edit event form
   const [newName, setNewName] = useState("");
@@ -71,6 +82,7 @@ const AdminDashboard = () => {
     if (!user) return;
     fetchEvents();
     fetchPurchases();
+    fetchAdmins();
   }, [user]);
 
   const fetchEvents = async () => {
@@ -97,6 +109,43 @@ const AdminDashboard = () => {
       .select("*")
       .order("created_at", { ascending: false });
     if (data) setPurchases(data);
+  };
+
+  const fetchAdmins = async () => {
+    const { data, error } = await supabase.functions.invoke("manage-admins", {
+      body: { action: "list" },
+    });
+    if (!error && data?.admins) setAdminUsers(data.admins);
+  };
+
+  const addAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminEmail.trim()) return;
+    setAddingAdmin(true);
+    const { data, error } = await supabase.functions.invoke("manage-admins", {
+      body: { action: "add", email: newAdminEmail.trim().toLowerCase() },
+    });
+    setAddingAdmin(false);
+    if (error || data?.error) {
+      toast.error(data?.error || "Error al agregar admin");
+      return;
+    }
+    toast.success("Administrador agregado");
+    setNewAdminEmail("");
+    fetchAdmins();
+  };
+
+  const removeAdmin = async (userId: string, email: string) => {
+    if (!confirm(`¿Remover a ${email} como administrador?`)) return;
+    const { data, error } = await supabase.functions.invoke("manage-admins", {
+      body: { action: "remove", user_id: userId },
+    });
+    if (error || data?.error) {
+      toast.error(data?.error || "Error al remover admin");
+      return;
+    }
+    toast.success("Administrador removido");
+    fetchAdmins();
   };
 
   const openEditEvent = (evt: Event) => {
@@ -386,6 +435,65 @@ const AdminDashboard = () => {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Admin Management */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              <h2 className="font-display text-xl font-bold text-foreground">Administradores</h2>
+            </div>
+
+            <div className="glass-card p-5 space-y-4">
+              <form onSubmit={addAdmin} className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="email@ejemplo.com"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  required
+                  className="bg-secondary border-border text-foreground flex-1"
+                />
+                <Button
+                  type="submit"
+                  disabled={addingAdmin}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-display shrink-0"
+                >
+                  <UserPlus className="mr-1.5 h-4 w-4" />
+                  {addingAdmin ? "Agregando..." : "Agregar"}
+                </Button>
+              </form>
+
+              <p className="text-xs text-muted-foreground">
+                El usuario debe haberse registrado previamente en la app.
+              </p>
+
+              {adminUsers.length > 0 && (
+                <div className="space-y-2">
+                  {adminUsers.map((admin) => (
+                    <div key={admin.user_id} className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{admin.email}</span>
+                        {admin.user_id === user?.id && (
+                          <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">Tú</span>
+                        )}
+                      </div>
+                      {admin.user_id !== user?.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeAdmin(admin.user_id, admin.email)}
+                          className="border-destructive/20 text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>
