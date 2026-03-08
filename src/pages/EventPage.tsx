@@ -219,7 +219,7 @@ const EventPage = () => {
     }).catch((err) => console.error("Notification error:", err));
   };
 
-  const handleDownload = async (photo: MatchedPhoto) => {
+  const handleDownload = async (photo: MatchedPhoto, isFree: boolean) => {
     const response = await fetch(photo.publicUrl);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -230,7 +230,13 @@ const EventPage = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Foto descargada");
+    
+    if (isFree) {
+      markFreePhotoUsed();
+      toast.success("¡Foto gratis descargada!");
+    } else {
+      toast.success("Foto descargada");
+    }
   };
 
   if (loading) {
