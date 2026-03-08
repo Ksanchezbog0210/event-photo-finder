@@ -17,7 +17,7 @@ interface PaymentModalProps {
   photoCount: number;
   totalAmount: number;
   sinpePhone: string;
-  onConfirm: (clientName: string, clientPhone: string) => void;
+  onConfirm: (clientName: string, clientPhone: string, proofFile: File | null) => void;
 }
 
 type PaymentMethod = "sinpe" | "transfer";
@@ -35,6 +35,7 @@ const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onCo
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("sinpe");
 
@@ -47,10 +48,11 @@ const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onCo
   const handleConfirm = async () => {
     if (!clientName.trim()) return;
     setSending(true);
-    await onConfirm(clientName.trim(), clientPhone.trim());
+    await onConfirm(clientName.trim(), clientPhone.trim(), proofFile);
     setSending(false);
     setClientName("");
     setClientPhone("");
+    setProofFile(null);
   };
 
   const amountColones = (totalAmount * 530).toLocaleString();
@@ -172,6 +174,22 @@ const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onCo
                 placeholder="8888-8888"
                 className="bg-secondary border-border text-foreground"
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-foreground text-sm">Comprobante de pago (opcional)</Label>
+              <div className="relative">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                  className="bg-secondary border-border text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                />
+              </div>
+              {proofFile && (
+                <p className="text-xs text-muted-foreground">
+                  ✓ {proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)
+                </p>
+              )}
             </div>
           </div>
 
