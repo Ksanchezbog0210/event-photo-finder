@@ -11,7 +11,7 @@ interface WatermarkImageProps {
 const WatermarkImage = ({
   src,
   alt,
-  watermarkText = "FOTOFIND",
+  watermarkText = "PLUSSPAZ",
   className = "",
   onClick,
 }: WatermarkImageProps) => {
