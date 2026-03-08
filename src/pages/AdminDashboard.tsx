@@ -565,6 +565,22 @@ const AdminDashboard = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Proof Dialog */}
+      <Dialog open={showProof} onOpenChange={setShowProof}>
+        <DialogContent className="bg-card border-border text-foreground max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-foreground">Comprobante de pago</DialogTitle>
+          </DialogHeader>
+          {proofUrl && (
+            <img
+              src={proofUrl}
+              alt="Comprobante de pago"
+              className="w-full rounded-lg object-contain max-h-[70vh]"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
