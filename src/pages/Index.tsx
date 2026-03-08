@@ -42,7 +42,7 @@ const Index = () => {
       {/* Hero */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-16">
         <div className="absolute inset-0">
-          <img src={heroBanner} alt="Evento deportivo" className="w-full h-full object-cover" />
+          <img src={heroBanner} alt="Evento profesional" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/60 to-background" />
         </div>
 
