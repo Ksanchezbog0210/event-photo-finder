@@ -17,7 +17,7 @@ interface PaymentModalProps {
   photoCount: number;
   totalAmount: number;
   sinpePhone: string;
-  onConfirm: (clientName: string, clientPhone: string) => void;
+  onConfirm: (clientName: string, clientPhone: string, proofFile: File | null) => void;
 }
 
 type PaymentMethod = "sinpe" | "transfer";
