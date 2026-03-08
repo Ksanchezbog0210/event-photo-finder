@@ -426,26 +426,38 @@ const AdminDashboard = () => {
                         ${Number(p.total_amount).toFixed(2)} • {p.payment_method} • {p.client_phone || "Sin teléfono"}
                       </p>
                     </div>
-                    {p.status === "pending" && (
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => approvePurchase(p.id)}
-                          className="bg-green-600 hover:bg-green-700 text-foreground font-display"
-                        >
-                          <CheckCircle className="mr-1 h-3.5 w-3.5" />
-                          Aprobar
-                        </Button>
+                    <div className="flex gap-2">
+                      {p.payment_proof_path && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => rejectPurchase(p.id)}
-                          className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                          onClick={() => viewProof(p.payment_proof_path!)}
+                          className="border-border text-foreground hover:bg-secondary"
                         >
-                          <XCircle className="h-3.5 w-3.5" />
+                          <FileImage className="h-3.5 w-3.5" />
                         </Button>
-                      </div>
-                    )}
+                      )}
+                      {p.status === "pending" && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => approvePurchase(p.id)}
+                            className="bg-green-600 hover:bg-green-700 text-foreground font-display"
+                          >
+                            <CheckCircle className="mr-1 h-3.5 w-3.5" />
+                            Aprobar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => rejectPurchase(p.id)}
+                            className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
