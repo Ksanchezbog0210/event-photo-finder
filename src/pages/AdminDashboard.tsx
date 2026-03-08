@@ -29,6 +29,7 @@ import {
   Shield,
   UserPlus,
   Users,
+  FileImage,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
@@ -53,6 +54,8 @@ const AdminDashboard = () => {
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [addingAdmin, setAddingAdmin] = useState(false);
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
+  const [showProof, setShowProof] = useState(false);
 
   // New/Edit event form
   const [newName, setNewName] = useState("");
@@ -259,6 +262,18 @@ const AdminDashboard = () => {
     navigate("/");
   };
 
+  const viewProof = async (proofPath: string) => {
+    const { data, error } = await supabase.storage
+      .from("payment-proofs")
+      .createSignedUrl(proofPath, 300);
+    if (error || !data?.signedUrl) {
+      toast.error("No se pudo cargar el comprobante");
+      return;
+    }
+    setProofUrl(data.signedUrl);
+    setShowProof(true);
+  };
+
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success("Código copiado");
@@ -411,26 +426,38 @@ const AdminDashboard = () => {
                         ${Number(p.total_amount).toFixed(2)} • {p.payment_method} • {p.client_phone || "Sin teléfono"}
                       </p>
                     </div>
-                    {p.status === "pending" && (
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => approvePurchase(p.id)}
-                          className="bg-green-600 hover:bg-green-700 text-foreground font-display"
-                        >
-                          <CheckCircle className="mr-1 h-3.5 w-3.5" />
-                          Aprobar
-                        </Button>
+                    <div className="flex gap-2">
+                      {p.payment_proof_path && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => rejectPurchase(p.id)}
-                          className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                          onClick={() => viewProof(p.payment_proof_path!)}
+                          className="border-border text-foreground hover:bg-secondary"
                         >
-                          <XCircle className="h-3.5 w-3.5" />
+                          <FileImage className="h-3.5 w-3.5" />
                         </Button>
-                      </div>
-                    )}
+                      )}
+                      {p.status === "pending" && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => approvePurchase(p.id)}
+                            className="bg-green-600 hover:bg-green-700 text-foreground font-display"
+                          >
+                            <CheckCircle className="mr-1 h-3.5 w-3.5" />
+                            Aprobar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => rejectPurchase(p.id)}
+                            className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -536,6 +563,22 @@ const AdminDashboard = () => {
               {editingEvent ? "Guardar cambios" : "Crear evento"}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Proof Dialog */}
+      <Dialog open={showProof} onOpenChange={setShowProof}>
+        <DialogContent className="bg-card border-border text-foreground max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-foreground">Comprobante de pago</DialogTitle>
+          </DialogHeader>
+          {proofUrl && (
+            <img
+              src={proofUrl}
+              alt="Comprobante de pago"
+              className="w-full rounded-lg object-contain max-h-[70vh]"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
