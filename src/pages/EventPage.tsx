@@ -172,6 +172,11 @@ const EventPage = () => {
     setPurchaseRequestId(data.id);
     setPaymentModal(false);
     toast.success("Solicitud enviada. El fotógrafo verificará tu pago y aprobará la descarga.");
+
+    // Notify admin via email (fire and forget)
+    supabase.functions.invoke("notify-purchase", {
+      body: { purchaseRequestId: data.id },
+    }).catch((err) => console.error("Notification error:", err));
   };
 
   const handleDownload = async (photo: MatchedPhoto) => {
