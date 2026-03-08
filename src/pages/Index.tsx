@@ -42,7 +42,7 @@ const Index = () => {
       {/* Hero */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-16">
         <div className="absolute inset-0">
-          <img src={heroBanner} alt="Evento deportivo" className="w-full h-full object-cover" />
+          <img src={heroBanner} alt="Evento profesional" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/60 to-background" />
         </div>
 
@@ -59,8 +59,8 @@ const Index = () => {
             </h1>
 
             <p className="text-muted-foreground text-lg max-w-lg mx-auto leading-relaxed">
-              Ingresa tu código de evento, tómate una selfie y descubre
-              todas las fotos donde apareces. Así de simple.
+              Ingresa el código de tu evento, tómate una selfie y descubre
+              todas las fotos donde apareces. Bodas, carreras, cumpleaños y más.
             </p>
 
             <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
@@ -92,8 +92,8 @@ const Index = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: Search, title: "Ingresa tu código", desc: "Tu fotógrafo te dará un código único para acceder a las fotos del evento." },
-              { icon: Camera, title: "Tómate una selfie", desc: "Nuestra IA compara tu rostro con miles de fotos en segundos." },
+              { icon: Search, title: "Ingresa tu código", desc: "Tu fotógrafo te dará un código único para acceder a las fotos de tu evento." },
+              { icon: Camera, title: "Tómate una selfie", desc: "Nuestra IA compara tu rostro con todas las fotos en segundos." },
               { icon: Shield, title: "Descarga tus fotos", desc: "Recibe 1 foto gratis y compra las demás por solo $2 cada una." },
             ].map((step, i) => (
               <div key={i} className="glass-card p-6 text-center animate-fade-up" style={{ animationDelay: `${i * 150}ms` }}>
@@ -110,7 +110,7 @@ const Index = () => {
 
       <footer className="border-t border-border py-8">
         <div className="container text-center">
-          <p className="text-sm text-muted-foreground">© 2026 Plusspaz — Fotografía deportiva profesional</p>
+          <p className="text-sm text-muted-foreground">© 2026 Plusspaz — Fotografía profesional de eventos</p>
         </div>
       </footer>
     </div>
