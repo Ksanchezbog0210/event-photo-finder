@@ -110,7 +110,7 @@ const Index = () => {
 
       <footer className="border-t border-border py-8">
         <div className="container text-center">
-          <p className="text-sm text-muted-foreground">© 2026 Plusspaz — Fotografía deportiva profesional</p>
+          <p className="text-sm text-muted-foreground">© 2026 Plusspaz — Fotografía profesional de eventos</p>
         </div>
       </footer>
     </div>
