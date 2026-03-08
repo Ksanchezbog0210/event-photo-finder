@@ -39,10 +39,11 @@ const AdminDashboard = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [purchases, setPurchases] = useState<PurchaseRequest[]>([]);
   const [showNewEvent, setShowNewEvent] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
 
-  // New event form
+  // New/Edit event form
   const [newName, setNewName] = useState("");
   const [newCode, setNewCode] = useState("");
   const [newDate, setNewDate] = useState("");
