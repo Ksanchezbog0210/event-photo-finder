@@ -59,8 +59,8 @@ const Index = () => {
             </h1>
 
             <p className="text-muted-foreground text-lg max-w-lg mx-auto leading-relaxed">
-              Ingresa tu código de evento, tómate una selfie y descubre
-              todas las fotos donde apareces. Así de simple.
+              Ingresa el código de tu evento, tómate una selfie y descubre
+              todas las fotos donde apareces. Bodas, carreras, cumpleaños y más.
             </p>
 
             <form onSubmit={handleSubmit} className="max-w-sm mx-auto">
