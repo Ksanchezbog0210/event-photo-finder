@@ -390,16 +390,18 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      {/* New Event Dialog */}
-      <Dialog open={showNewEvent} onOpenChange={setShowNewEvent}>
+      {/* New/Edit Event Dialog */}
+      <Dialog open={showNewEvent} onOpenChange={(open) => { if (!open) resetForm(); }}>
         <DialogContent className="bg-card border-border text-foreground max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-display text-foreground">Nuevo evento</DialogTitle>
+            <DialogTitle className="font-display text-foreground">
+              {editingEvent ? "Editar evento" : "Nuevo evento"}
+            </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Crea un evento y comparte el código con tus clientes
+              {editingEvent ? "Modifica los detalles del evento" : "Crea un evento y comparte el código con tus clientes"}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={createEvent} className="space-y-3">
+          <form onSubmit={handleEventSubmit} className="space-y-3">
             <div className="space-y-1.5">
               <Label className="text-foreground text-sm">Nombre del evento</Label>
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="Maratón San José 2026" className="bg-secondary border-border text-foreground" />
@@ -423,7 +425,7 @@ const AdminDashboard = () => {
               <Input value={newLocation} onChange={(e) => setNewLocation(e.target.value)} placeholder="San José, Costa Rica" className="bg-secondary border-border text-foreground" />
             </div>
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-display">
-              Crear evento
+              {editingEvent ? "Guardar cambios" : "Crear evento"}
             </Button>
           </form>
         </DialogContent>
