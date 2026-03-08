@@ -262,6 +262,18 @@ const AdminDashboard = () => {
     navigate("/");
   };
 
+  const viewProof = async (proofPath: string) => {
+    const { data, error } = await supabase.storage
+      .from("payment-proofs")
+      .createSignedUrl(proofPath, 300);
+    if (error || !data?.signedUrl) {
+      toast.error("No se pudo cargar el comprobante");
+      return;
+    }
+    setProofUrl(data.signedUrl);
+    setShowProof(true);
+  };
+
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success("Código copiado");
