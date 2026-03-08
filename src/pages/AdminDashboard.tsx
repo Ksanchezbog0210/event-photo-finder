@@ -99,27 +99,59 @@ const AdminDashboard = () => {
     if (data) setPurchases(data);
   };
 
-  const createEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    const { error } = await supabase.from("events").insert({
-      admin_id: user.id,
-      name: newName,
-      code: newCode.toUpperCase(),
-      date: newDate,
-      location: newLocation,
-      price_per_photo: parseFloat(newPrice),
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Evento creado");
+  const openEditEvent = (evt: Event) => {
+    setEditingEvent(evt);
+    setNewName(evt.name);
+    setNewCode(evt.code);
+    setNewDate(evt.date);
+    setNewLocation(evt.location || "");
+    setNewPrice(String(evt.price_per_photo));
+    setShowNewEvent(true);
+  };
+
+  const resetForm = () => {
     setShowNewEvent(false);
+    setEditingEvent(null);
     setNewName("");
     setNewCode("");
     setNewDate("");
     setNewLocation("");
+    setNewPrice("2.00");
+  };
+
+  const handleEventSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    if (editingEvent) {
+      const { error } = await supabase.from("events").update({
+        name: newName,
+        code: newCode.toUpperCase(),
+        date: newDate,
+        location: newLocation,
+        price_per_photo: parseFloat(newPrice),
+      }).eq("id", editingEvent.id);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Evento actualizado");
+    } else {
+      const { error } = await supabase.from("events").insert({
+        admin_id: user.id,
+        name: newName,
+        code: newCode.toUpperCase(),
+        date: newDate,
+        location: newLocation,
+        price_per_photo: parseFloat(newPrice),
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Evento creado");
+    }
+    resetForm();
     fetchEvents();
   };
 
