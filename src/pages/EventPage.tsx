@@ -35,6 +35,41 @@ const EventPage = () => {
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [purchaseRequestId, setPurchaseRequestId] = useState<string | null>(null);
+  const [freePhotoId, setFreePhotoId] = useState<string | null>(null);
+  const [freePhotoUsed, setFreePhotoUsed] = useState(false);
+
+  // Load free photo state from localStorage
+  useEffect(() => {
+    if (!eventId) return;
+    const key = `plusspaz_free_${eventId}`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.used) {
+        setFreePhotoUsed(true);
+        setFreePhotoId(null);
+      } else {
+        setFreePhotoId(parsed.photoId);
+        setFreePhotoUsed(false);
+      }
+    }
+  }, [eventId]);
+
+  const saveFreePhoto = (photoId: string) => {
+    if (!eventId) return;
+    const key = `plusspaz_free_${eventId}`;
+    localStorage.setItem(key, JSON.stringify({ photoId, used: false }));
+    setFreePhotoId(photoId);
+    setFreePhotoUsed(false);
+  };
+
+  const markFreePhotoUsed = () => {
+    if (!eventId) return;
+    const key = `plusspaz_free_${eventId}`;
+    localStorage.setItem(key, JSON.stringify({ photoId: freePhotoId, used: true }));
+    setFreePhotoUsed(true);
+    setFreePhotoId(null);
+  };
 
   const fetchEvent = useCallback(async () => {
     if (!eventId) return;
@@ -134,6 +169,11 @@ const EventPage = () => {
         })
         .filter((r): r is MatchedPhoto => r !== null);
 
+      // Assign free photo: use stored one if exists, otherwise first result
+      if (!freePhotoUsed && !freePhotoId && results.length > 0) {
+        saveFreePhoto(results[0].id);
+      }
+
       setMatchedPhotos(results);
       setIsProcessing(false);
       setView("results");
@@ -179,7 +219,7 @@ const EventPage = () => {
     }).catch((err) => console.error("Notification error:", err));
   };
 
-  const handleDownload = async (photo: MatchedPhoto) => {
+  const handleDownload = async (photo: MatchedPhoto, isFree: boolean) => {
     const response = await fetch(photo.publicUrl);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -190,7 +230,13 @@ const EventPage = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Foto descargada");
+    
+    if (isFree) {
+      markFreePhotoUsed();
+      toast.success("¡Foto gratis descargada!");
+    } else {
+      toast.success("Foto descargada");
+    }
   };
 
   if (loading) {
@@ -300,19 +346,22 @@ const EventPage = () => {
               )}
 
               <div className="photo-grid">
-                {matchedPhotos.map((photo, i) => (
-                  <PhotoResultCard
-                    key={photo.id}
-                    src={photo.publicUrl}
-                    matchScore={photo.matchScore}
-                    index={i}
-                    isFree={i === 0}
-                    isPurchased={purchasedIds.has(photo.id)}
-                    pricePerPhoto={Number(event.price_per_photo)}
-                    onRequestPurchase={() => handlePurchaseRequest(photo.id)}
-                    onDownload={() => handleDownload(photo)}
-                  />
-                ))}
+                {matchedPhotos.map((photo, i) => {
+                  const isThisFree = !freePhotoUsed && photo.id === freePhotoId;
+                  return (
+                    <PhotoResultCard
+                      key={photo.id}
+                      src={photo.publicUrl}
+                      matchScore={photo.matchScore}
+                      index={i}
+                      isFree={isThisFree}
+                      isPurchased={purchasedIds.has(photo.id)}
+                      pricePerPhoto={Number(event.price_per_photo)}
+                      onRequestPurchase={() => handlePurchaseRequest(photo.id)}
+                      onDownload={() => handleDownload(photo, isThisFree)}
+                    />
+                  );
+                })}
               </div>
             </div>
           )}
