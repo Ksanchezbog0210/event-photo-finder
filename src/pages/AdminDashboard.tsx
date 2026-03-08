@@ -26,6 +26,9 @@ import {
   Clock,
   Copy,
   Pencil,
+  Shield,
+  UserPlus,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
