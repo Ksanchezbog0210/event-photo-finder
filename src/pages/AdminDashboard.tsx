@@ -99,13 +99,31 @@ const AdminDashboard = () => {
       .order("created_at", { ascending: false });
     if (data) {
       setEvents(data);
-      // Fetch photo counts
       for (const evt of data) {
-        const { count } = await supabase
+        const { count: photoCount } = await supabase
           .from("event_photos")
           .select("*", { count: "exact", head: true })
           .eq("event_id", evt.id);
-        setPhotoCounts((prev) => ({ ...prev, [evt.id]: count ?? 0 }));
+        setPhotoCounts((prev) => ({ ...prev, [evt.id]: photoCount ?? 0 }));
+
+        const { count: indexedCount } = await supabase
+          .from("event_photos")
+          .select("*", { count: "exact", head: true })
+          .eq("event_id", evt.id)
+          .eq("is_indexed", true);
+        setIndexedCounts((prev) => ({ ...prev, [evt.id]: indexedCount ?? 0 }));
+
+        const { count: faceCount } = await supabase
+          .from("face_descriptors")
+          .select("*", { count: "exact", head: true })
+          .eq("event_id", evt.id);
+        setFaceCounts((prev) => ({ ...prev, [evt.id]: faceCount ?? 0 }));
+
+        const { count: searchCount } = await supabase
+          .from("search_requests")
+          .select("*", { count: "exact", head: true })
+          .eq("event_id", evt.id);
+        setSearchCounts((prev) => ({ ...prev, [evt.id]: searchCount ?? 0 }));
       }
     }
   };
