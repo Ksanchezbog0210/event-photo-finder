@@ -364,6 +364,12 @@ const AdminDashboard = () => {
                             <Image className="h-3.5 w-3.5" />
                             {photoCounts[evt.id] ?? 0} fotos
                           </span>
+                          {indexingEventId === evt.id && (
+                            <span className="flex items-center gap-1 text-primary animate-pulse">
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Indexando caras...
+                            </span>
+                          )}
                         </div>
                         <div className="mt-2 flex items-center gap-2">
                           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-display font-semibold">
