@@ -20,6 +20,7 @@ export type Database = {
           event_id: string
           height: number | null
           id: string
+          is_indexed: boolean
           original_filename: string | null
           storage_path: string
           thumbnail_path: string | null
@@ -30,6 +31,7 @@ export type Database = {
           event_id: string
           height?: number | null
           id?: string
+          is_indexed?: boolean
           original_filename?: string | null
           storage_path: string
           thumbnail_path?: string | null
@@ -40,6 +42,7 @@ export type Database = {
           event_id?: string
           height?: number | null
           id?: string
+          is_indexed?: boolean
           original_filename?: string | null
           storage_path?: string
           thumbnail_path?: string | null
@@ -102,6 +105,48 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      face_descriptors: {
+        Row: {
+          created_at: string
+          descriptor: string
+          event_id: string
+          face_index: number
+          id: string
+          photo_id: string
+        }
+        Insert: {
+          created_at?: string
+          descriptor: string
+          event_id: string
+          face_index?: number
+          id?: string
+          photo_id: string
+        }
+        Update: {
+          created_at?: string
+          descriptor?: string
+          event_id?: string
+          face_index?: number
+          id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "face_descriptors_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "face_descriptors_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "event_photos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
