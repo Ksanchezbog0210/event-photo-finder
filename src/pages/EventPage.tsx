@@ -131,7 +131,6 @@ const EventPage = () => {
   const handleCapture = async (imageData: string) => {
     setIsProcessing(true);
     try {
-      // Extract base64 data from data URL
       const base64 = imageData.replace(/^data:image\/\w+;base64,/, "");
 
       const { data, error } = await supabase.functions.invoke("face-match", {
@@ -142,6 +141,13 @@ const EventPage = () => {
         console.error("Face match error:", error);
         toast.error("Error al buscar tus fotos. Intenta de nuevo.");
         setIsProcessing(false);
+        return;
+      }
+
+      if (data?.notIndexed) {
+        toast.error("Las fotos de este evento aún no están listas para búsqueda facial. Intenta en unos minutos.");
+        setIsProcessing(false);
+        setView("gallery");
         return;
       }
 
@@ -160,7 +166,6 @@ const EventPage = () => {
         return;
       }
 
-      // Map matches to photo data
       const results: MatchedPhoto[] = matches
         .map((m) => {
           const photo = photos.find((p) => p.id === m.photoId);
@@ -169,7 +174,6 @@ const EventPage = () => {
         })
         .filter((r): r is MatchedPhoto => r !== null);
 
-      // Assign free photo: use stored one if exists, otherwise first result
       if (!freePhotoUsed && !freePhotoId && results.length > 0) {
         saveFreePhoto(results[0].id);
       }
