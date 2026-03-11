@@ -31,6 +31,9 @@ import {
   Users,
   FileImage,
   Loader2,
+  RefreshCw,
+  ScanFace,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
