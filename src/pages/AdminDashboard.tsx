@@ -31,6 +31,9 @@ import {
   Users,
   FileImage,
   Loader2,
+  RefreshCw,
+  ScanFace,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
@@ -57,6 +60,9 @@ const AdminDashboard = () => {
   const [addingAdmin, setAddingAdmin] = useState(false);
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [showProof, setShowProof] = useState(false);
+  const [faceCounts, setFaceCounts] = useState<Record<string, number>>({});
+  const [indexedCounts, setIndexedCounts] = useState<Record<string, number>>({});
+  const [searchCounts, setSearchCounts] = useState<Record<string, number>>({});
 
   // New/Edit event form
   const [newName, setNewName] = useState("");
@@ -96,13 +102,31 @@ const AdminDashboard = () => {
       .order("created_at", { ascending: false });
     if (data) {
       setEvents(data);
-      // Fetch photo counts
       for (const evt of data) {
-        const { count } = await supabase
+        const { count: photoCount } = await supabase
           .from("event_photos")
           .select("*", { count: "exact", head: true })
           .eq("event_id", evt.id);
-        setPhotoCounts((prev) => ({ ...prev, [evt.id]: count ?? 0 }));
+        setPhotoCounts((prev) => ({ ...prev, [evt.id]: photoCount ?? 0 }));
+
+        const { count: indexedCount } = await supabase
+          .from("event_photos")
+          .select("*", { count: "exact", head: true })
+          .eq("event_id", evt.id)
+          .eq("is_indexed", true);
+        setIndexedCounts((prev) => ({ ...prev, [evt.id]: indexedCount ?? 0 }));
+
+        const { count: faceCount } = await supabase
+          .from("face_descriptors")
+          .select("*", { count: "exact", head: true })
+          .eq("event_id", evt.id);
+        setFaceCounts((prev) => ({ ...prev, [evt.id]: faceCount ?? 0 }));
+
+        const { count: searchCount } = await supabase
+          .from("search_requests")
+          .select("*", { count: "exact", head: true })
+          .eq("event_id", evt.id);
+        setSearchCounts((prev) => ({ ...prev, [evt.id]: searchCount ?? 0 }));
       }
     }
   };
@@ -258,6 +282,35 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleReindex = async (eventId: string) => {
+    // Reset all photos to unindexed and delete existing descriptors
+    setIndexingEventId(eventId);
+    const { error: delError } = await supabase
+      .from("face_descriptors")
+      .delete()
+      .eq("event_id", eventId);
+    if (delError) {
+      toast.error("Error al limpiar descriptores");
+      setIndexingEventId(null);
+      return;
+    }
+    await supabase
+      .from("event_photos")
+      .update({ is_indexed: false })
+      .eq("event_id", eventId);
+
+    const { data: indexData, error: indexError } = await supabase.functions.invoke("index-faces", {
+      body: { eventId },
+    });
+    setIndexingEventId(null);
+    if (indexError || indexData?.error) {
+      toast.error(indexData?.error || "Error al re-indexar caras");
+    } else {
+      toast.success(`Re-indexado: ${indexData?.faces || 0} caras en ${indexData?.indexed || 0} fotos`);
+    }
+    fetchEvents();
+  };
+
   const approvePurchase = async (id: string) => {
     await supabase
       .from("purchase_requests")
@@ -372,6 +425,21 @@ const AdminDashboard = () => {
                             </span>
                           )}
                         </div>
+                        {/* Indexing Stats */}
+                        <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1" title="Fotos indexadas">
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                            {indexedCounts[evt.id] ?? 0}/{photoCounts[evt.id] ?? 0} indexadas
+                          </span>
+                          <span className="flex items-center gap-1" title="Caras detectadas">
+                            <ScanFace className="h-3 w-3 text-primary" />
+                            {faceCounts[evt.id] ?? 0} caras
+                          </span>
+                          <span className="flex items-center gap-1" title="Búsquedas realizadas">
+                            <Search className="h-3 w-3 text-muted-foreground" />
+                            {searchCounts[evt.id] ?? 0} búsquedas
+                          </span>
+                        </div>
                         <div className="mt-2 flex items-center gap-2">
                           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-display font-semibold">
                             {evt.code}
@@ -381,7 +449,7 @@ const AdminDashboard = () => {
                           </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
                         <label className="cursor-pointer">
                           <input
                             type="file"
@@ -395,6 +463,16 @@ const AdminDashboard = () => {
                             {uploading ? "Subiendo..." : "Fotos"}
                           </div>
                         </label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReindex(evt.id)}
+                          disabled={indexingEventId === evt.id || (photoCounts[evt.id] ?? 0) === 0}
+                          className="border-border text-foreground hover:bg-secondary"
+                          title="Re-indexar caras"
+                        >
+                          <RefreshCw className={`h-3.5 w-3.5 ${indexingEventId === evt.id ? 'animate-spin' : ''}`} />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
