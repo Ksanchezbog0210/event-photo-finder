@@ -311,6 +311,7 @@ const AdminDashboard = () => {
     fetchEvents();
   };
 
+  const approvePurchase = async (id: string) => {
     await supabase
       .from("purchase_requests")
       .update({ status: "approved", approved_by: user?.id, approved_at: new Date().toISOString() })
