@@ -282,7 +282,35 @@ const AdminDashboard = () => {
     }
   };
 
-  const approvePurchase = async (id: string) => {
+  const handleReindex = async (eventId: string) => {
+    // Reset all photos to unindexed and delete existing descriptors
+    setIndexingEventId(eventId);
+    const { error: delError } = await supabase
+      .from("face_descriptors")
+      .delete()
+      .eq("event_id", eventId);
+    if (delError) {
+      toast.error("Error al limpiar descriptores");
+      setIndexingEventId(null);
+      return;
+    }
+    await supabase
+      .from("event_photos")
+      .update({ is_indexed: false })
+      .eq("event_id", eventId);
+
+    const { data: indexData, error: indexError } = await supabase.functions.invoke("index-faces", {
+      body: { eventId },
+    });
+    setIndexingEventId(null);
+    if (indexError || indexData?.error) {
+      toast.error(indexData?.error || "Error al re-indexar caras");
+    } else {
+      toast.success(`Re-indexado: ${indexData?.faces || 0} caras en ${indexData?.indexed || 0} fotos`);
+    }
+    fetchEvents();
+  };
+
     await supabase
       .from("purchase_requests")
       .update({ status: "approved", approved_by: user?.id, approved_at: new Date().toISOString() })
