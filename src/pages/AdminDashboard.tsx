@@ -57,6 +57,9 @@ const AdminDashboard = () => {
   const [addingAdmin, setAddingAdmin] = useState(false);
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [showProof, setShowProof] = useState(false);
+  const [faceCounts, setFaceCounts] = useState<Record<string, number>>({});
+  const [indexedCounts, setIndexedCounts] = useState<Record<string, number>>({});
+  const [searchCounts, setSearchCounts] = useState<Record<string, number>>({});
 
   // New/Edit event form
   const [newName, setNewName] = useState("");
