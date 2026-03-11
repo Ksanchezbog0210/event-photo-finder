@@ -30,6 +30,7 @@ import {
   UserPlus,
   Users,
   FileImage,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
@@ -214,9 +215,12 @@ const AdminDashboard = () => {
     fetchEvents();
   };
 
+  const [indexingEventId, setIndexingEventId] = useState<string | null>(null);
+
   const handlePhotoUpload = async (eventId: string, files: FileList) => {
     setUploading(true);
     let count = 0;
+    const uploadedPhotoIds: string[] = [];
     for (const file of Array.from(files)) {
       const ext = file.name.split(".").pop();
       const path = `${eventId}/${crypto.randomUUID()}.${ext}`;
@@ -227,16 +231,31 @@ const AdminDashboard = () => {
         toast.error(`Error subiendo ${file.name}`);
         continue;
       }
-      await supabase.from("event_photos").insert({
+      const { data: photoData } = await supabase.from("event_photos").insert({
         event_id: eventId,
         storage_path: path,
         original_filename: file.name,
-      });
+      }).select("id").single();
+      if (photoData) uploadedPhotoIds.push(photoData.id);
       count++;
     }
-    toast.success(`${count} fotos subidas`);
+    toast.success(`${count} fotos subidas. Indexando caras...`);
     setUploading(false);
     fetchEvents();
+
+    // Auto-index faces in background
+    if (uploadedPhotoIds.length > 0) {
+      setIndexingEventId(eventId);
+      const { data: indexData, error: indexError } = await supabase.functions.invoke("index-faces", {
+        body: { eventId, photoIds: uploadedPhotoIds },
+      });
+      setIndexingEventId(null);
+      if (indexError || indexData?.error) {
+        toast.error(indexData?.error || "Error al indexar caras");
+      } else {
+        toast.success(`${indexData?.faces || 0} caras indexadas en ${indexData?.indexed || 0} fotos`);
+      }
+    }
   };
 
   const approvePurchase = async (id: string) => {
@@ -346,6 +365,12 @@ const AdminDashboard = () => {
                             <Image className="h-3.5 w-3.5" />
                             {photoCounts[evt.id] ?? 0} fotos
                           </span>
+                          {indexingEventId === evt.id && (
+                            <span className="flex items-center gap-1 text-primary animate-pulse">
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Indexando caras...
+                            </span>
+                          )}
                         </div>
                         <div className="mt-2 flex items-center gap-2">
                           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-display font-semibold">
