@@ -23,142 +23,145 @@ serve(async (req) => {
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get event photos
-    const { data: photos, error: photosError } = await supabase
-      .from("event_photos")
-      .select("id, storage_path")
+    // Get all face descriptors for this event
+    const { data: descriptors, error: descError } = await supabase
+      .from("face_descriptors")
+      .select("id, photo_id, face_index, descriptor")
       .eq("event_id", eventId)
-      .order("created_at", { ascending: true });
+      .order("photo_id")
+      .order("face_index");
 
-    if (photosError || !photos || photos.length === 0) {
+    if (descError || !descriptors || descriptors.length === 0) {
+      // Fallback: if no descriptors exist, tell user photos aren't indexed yet
       return new Response(
-        JSON.stringify({ error: "No photos found for this event", matches: [] }),
+        JSON.stringify({ 
+          error: "Las fotos de este evento aún no han sido procesadas. El fotógrafo debe indexar las fotos primero.",
+          matches: [],
+          notIndexed: true
+        }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Get public URLs for all photos
-    const photosWithUrls = photos.map((p) => {
-      const { data } = supabase.storage.from("event-photos").getPublicUrl(p.storage_path);
-      return { id: p.id, url: data.publicUrl };
-    });
+    // Build a text catalog of all faces
+    const faceCatalog = descriptors.map((d, i) => 
+      `Face #${i + 1} (photoId: ${d.photo_id}, faceIndex: ${d.face_index}): ${d.descriptor}`
+    ).join("\n");
 
-    // Process in batches of 4 photos at a time to avoid token limits
-    const BATCH_SIZE = 4;
-    const allMatches: { photoId: string; score: number }[] = [];
+    // Single AI call: send selfie + text catalog
+    const messages = [
+      {
+        role: "system",
+        content: `You are a face matching assistant. You will receive a selfie photo and a TEXT CATALOG of face descriptions from event photos.
 
-    for (let i = 0; i < photosWithUrls.length; i += BATCH_SIZE) {
-      const batch = photosWithUrls.slice(i, i + BATCH_SIZE);
+Your task: Compare the person in the selfie against ALL face descriptions in the catalog and find matches.
 
-      const photoDescriptions = batch
-        .map((p, idx) => `Photo ${idx + 1} (ID: ${p.id})`)
-        .join(", ");
+MATCHING RULES:
+- Match based on: age range, gender, skin tone, hair style/color, facial structure, glasses, facial hair
+- Be generous — if descriptions reasonably match the selfie person, include them
+- A person may appear in multiple photos
+- Multiple faces in one photo may match (different angles)
 
-      const imageContents = batch.map((p) => ({
-        type: "image_url" as const,
-        image_url: { url: p.url },
-      }));
+SCORING:
+- 0.9+: Very confident — most features match closely
+- 0.7-0.9: Likely match — key features align
+- 0.5-0.7: Possible match — some features align
+- Only include matches with score >= 0.5
 
-      const messages = [
-        {
-          role: "system",
-          content: `You are a face matching assistant. You will receive a selfie photo and ${batch.length} event photos. 
-Your task is to determine if the SAME PERSON from the selfie appears in each event photo.
+OUTPUT FORMAT: Return ONLY a JSON array of objects:
+[{"photoId": "uuid-string", "score": 0.85}, ...]
 
-IMPORTANT RULES:
-- Compare facial features: face shape, eyes, nose, mouth, skin tone, hair
-- A person may look different due to angle, lighting, distance, or activity (sports)
-- Be generous with matching - if there's a reasonable chance it's the same person, include it
-- Return ONLY a JSON array with objects containing "photoId" (string) and "score" (number 0.0-1.0)
-- Score meaning: 0.9+ = very confident match, 0.7-0.9 = likely match, 0.5-0.7 = possible match
-- Only include photos with score >= 0.5
-- If no matches found, return an empty array []
-- Return ONLY the JSON array, no other text
+Group by photoId — if multiple faces in same photo match, use the highest score.
+Return ONLY the JSON array, no other text. If no matches, return [].
 
-The photos are: ${photoDescriptions}`,
-        },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "This is my selfie. Find me in the following event photos:" },
-            {
-              type: "image_url",
-              image_url: { url: `data:image/jpeg;base64,${selfieBase64}` },
-            },
-            ...imageContents,
-          ],
-        },
-      ];
-
-      const aiResponse = await fetch(
-        "https://ai.gateway.lovable.dev/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
+FACE CATALOG:
+${faceCatalog}`,
+      },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "This is my selfie. Find me in the face catalog above:" },
+          {
+            type: "image_url",
+            image_url: { url: `data:image/jpeg;base64,${selfieBase64}` },
           },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages,
-            max_tokens: 500,
-          }),
-        }
-      );
+        ],
+      },
+    ];
 
-      if (!aiResponse.ok) {
-        const errorText = await aiResponse.text();
-        console.error(`AI gateway error (batch ${i}):`, aiResponse.status, errorText);
-        
-        if (aiResponse.status === 429) {
-          return new Response(
-            JSON.stringify({ error: "Demasiadas solicitudes. Intenta de nuevo en unos segundos." }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        if (aiResponse.status === 402) {
-          return new Response(
-            JSON.stringify({ error: "Créditos de IA agotados." }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        // Skip this batch on error, continue with others
-        continue;
+    const aiResponse = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages,
+          max_tokens: 1000,
+        }),
       }
+    );
 
-      const aiData = await aiResponse.json();
-      const content = aiData.choices?.[0]?.message?.content || "[]";
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error("AI gateway error:", aiResponse.status, errorText);
 
-      try {
-        // Extract JSON from response (handle markdown code blocks)
-        let jsonStr = content.trim();
-        if (jsonStr.startsWith("```")) {
-          jsonStr = jsonStr.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
-        }
-        const batchMatches = JSON.parse(jsonStr);
-        if (Array.isArray(batchMatches)) {
-          for (const match of batchMatches) {
-            if (match.photoId && typeof match.score === "number" && match.score >= 0.5) {
-              allMatches.push({ photoId: match.photoId, score: match.score });
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Demasiadas solicitudes. Intenta de nuevo en unos segundos." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Créditos de IA agotados." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      return new Response(
+        JSON.stringify({ error: "Error del servicio de IA" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const aiData = await aiResponse.json();
+    const content = aiData.choices?.[0]?.message?.content || "[]";
+
+    let allMatches: { photoId: string; score: number }[] = [];
+
+    try {
+      let jsonStr = content.trim();
+      if (jsonStr.startsWith("```")) {
+        jsonStr = jsonStr.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
+      }
+      const parsed = JSON.parse(jsonStr);
+      if (Array.isArray(parsed)) {
+        // Deduplicate by photoId, keeping highest score
+        const bestScores = new Map<string, number>();
+        for (const match of parsed) {
+          if (match.photoId && typeof match.score === "number" && match.score >= 0.5) {
+            const existing = bestScores.get(match.photoId) ?? 0;
+            if (match.score > existing) {
+              bestScores.set(match.photoId, match.score);
             }
           }
         }
-      } catch (parseError) {
-        console.error("Failed to parse AI response:", content, parseError);
-        // Continue with next batch
+        allMatches = Array.from(bestScores.entries())
+          .map(([photoId, score]) => ({ photoId, score }))
+          .sort((a, b) => b.score - a.score);
       }
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", content, parseError);
     }
-
-    // Sort by score descending
-    allMatches.sort((a, b) => b.score - a.score);
 
     return new Response(
       JSON.stringify({ matches: allMatches }),
