@@ -425,6 +425,21 @@ const AdminDashboard = () => {
                             </span>
                           )}
                         </div>
+                        {/* Indexing Stats */}
+                        <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1" title="Fotos indexadas">
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                            {indexedCounts[evt.id] ?? 0}/{photoCounts[evt.id] ?? 0} indexadas
+                          </span>
+                          <span className="flex items-center gap-1" title="Caras detectadas">
+                            <ScanFace className="h-3 w-3 text-primary" />
+                            {faceCounts[evt.id] ?? 0} caras
+                          </span>
+                          <span className="flex items-center gap-1" title="Búsquedas realizadas">
+                            <Search className="h-3 w-3 text-muted-foreground" />
+                            {searchCounts[evt.id] ?? 0} búsquedas
+                          </span>
+                        </div>
                         <div className="mt-2 flex items-center gap-2">
                           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-display font-semibold">
                             {evt.code}
@@ -434,7 +449,7 @@ const AdminDashboard = () => {
                           </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
                         <label className="cursor-pointer">
                           <input
                             type="file"
@@ -448,6 +463,16 @@ const AdminDashboard = () => {
                             {uploading ? "Subiendo..." : "Fotos"}
                           </div>
                         </label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReindex(evt.id)}
+                          disabled={indexingEventId === evt.id || (photoCounts[evt.id] ?? 0) === 0}
+                          className="border-border text-foreground hover:bg-secondary"
+                          title="Re-indexar caras"
+                        >
+                          <RefreshCw className={`h-3.5 w-3.5 ${indexingEventId === evt.id ? 'animate-spin' : ''}`} />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
