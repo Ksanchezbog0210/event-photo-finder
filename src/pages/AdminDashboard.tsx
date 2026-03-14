@@ -277,7 +277,8 @@ const AdminDashboard = () => {
       if (indexError || indexData?.error) {
         toast.error(indexData?.error || "Error al indexar caras");
       } else {
-        toast.success(`${indexData?.faces || 0} caras indexadas en ${indexData?.indexed || 0} fotos`);
+        const msg = `${indexData?.faces || 0} caras indexadas en ${indexData?.indexed || 0} fotos`;
+        toast.success(indexData?.remaining ? `${msg}. Quedan ${indexData.remaining} fotos por indexar.` : msg);
       }
     }
   };
@@ -306,7 +307,8 @@ const AdminDashboard = () => {
     if (indexError || indexData?.error) {
       toast.error(indexData?.error || "Error al re-indexar caras");
     } else {
-      toast.success(`Re-indexado: ${indexData?.faces || 0} caras en ${indexData?.indexed || 0} fotos`);
+      const msg = `Re-indexado: ${indexData?.faces || 0} caras en ${indexData?.indexed || 0} fotos`;
+      toast.success(indexData?.remaining ? `${msg}. Quedan ${indexData.remaining} fotos por indexar.` : msg);
     }
     fetchEvents();
   };
