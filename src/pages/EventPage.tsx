@@ -404,7 +404,14 @@ const EventPage = () => {
         onClose={() => setPaymentModal(false)}
         photoCount={selectedPhotoIds.length}
         totalAmount={selectedPhotoIds.length * Number(event.price_per_photo)}
-        sinpePhone="89406622"
+        sinpePhone={(event as any).sinpe_phone || "89406622"}
+        bankInfo={{
+          bank: (event as any).bank_name || "Banco de Costa Rica",
+          accountHolder: (event as any).bank_account_holder || "Plusspaz CR",
+          accountNumber: (event as any).bank_account_number || "",
+          accountType: (event as any).bank_account_type || "Cuenta corriente colones",
+          cedula: (event as any).bank_cedula || "",
+        }}
         onConfirm={handlePaymentConfirmed}
       />
     </div>

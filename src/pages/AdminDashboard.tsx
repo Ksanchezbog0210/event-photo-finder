@@ -70,6 +70,12 @@ const AdminDashboard = () => {
   const [newDate, setNewDate] = useState("");
   const [newLocation, setNewLocation] = useState("");
   const [newPrice, setNewPrice] = useState("2.00");
+  const [newSinpePhone, setNewSinpePhone] = useState("89406622");
+  const [newBankName, setNewBankName] = useState("Banco de Costa Rica");
+  const [newBankHolder, setNewBankHolder] = useState("Plusspaz CR");
+  const [newBankAccount, setNewBankAccount] = useState("");
+  const [newBankType, setNewBankType] = useState("Cuenta corriente colones");
+  const [newBankCedula, setNewBankCedula] = useState("");
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -183,6 +189,12 @@ const AdminDashboard = () => {
     setNewDate(evt.date);
     setNewLocation(evt.location || "");
     setNewPrice(String(evt.price_per_photo));
+    setNewSinpePhone((evt as any).sinpe_phone || "89406622");
+    setNewBankName((evt as any).bank_name || "Banco de Costa Rica");
+    setNewBankHolder((evt as any).bank_account_holder || "Plusspaz CR");
+    setNewBankAccount((evt as any).bank_account_number || "");
+    setNewBankType((evt as any).bank_account_type || "Cuenta corriente colones");
+    setNewBankCedula((evt as any).bank_cedula || "");
     setShowNewEvent(true);
   };
 
@@ -194,20 +206,34 @@ const AdminDashboard = () => {
     setNewDate("");
     setNewLocation("");
     setNewPrice("2.00");
+    setNewSinpePhone("89406622");
+    setNewBankName("Banco de Costa Rica");
+    setNewBankHolder("Plusspaz CR");
+    setNewBankAccount("");
+    setNewBankType("Cuenta corriente colones");
+    setNewBankCedula("");
   };
 
   const handleEventSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
+    const eventPayload: any = {
+      name: newName,
+      code: newCode.toUpperCase(),
+      date: newDate,
+      location: newLocation,
+      price_per_photo: parseFloat(newPrice),
+      sinpe_phone: newSinpePhone,
+      bank_name: newBankName,
+      bank_account_holder: newBankHolder,
+      bank_account_number: newBankAccount,
+      bank_account_type: newBankType,
+      bank_cedula: newBankCedula,
+    };
+
     if (editingEvent) {
-      const { error } = await supabase.from("events").update({
-        name: newName,
-        code: newCode.toUpperCase(),
-        date: newDate,
-        location: newLocation,
-        price_per_photo: parseFloat(newPrice),
-      }).eq("id", editingEvent.id);
+      const { error } = await supabase.from("events").update(eventPayload).eq("id", editingEvent.id);
       if (error) {
         toast.error(error.message);
         return;
@@ -216,11 +242,7 @@ const AdminDashboard = () => {
     } else {
       const { error } = await supabase.from("events").insert({
         admin_id: user.id,
-        name: newName,
-        code: newCode.toUpperCase(),
-        date: newDate,
-        location: newLocation,
-        price_per_photo: parseFloat(newPrice),
+        ...eventPayload,
       });
       if (error) {
         toast.error(error.message);
@@ -641,7 +663,7 @@ const AdminDashboard = () => {
               {editingEvent ? "Modifica los detalles del evento" : "Crea un evento y comparte el código con tus clientes"}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEventSubmit} className="space-y-3">
+          <form onSubmit={handleEventSubmit} className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
             <div className="space-y-1.5">
               <Label className="text-foreground text-sm">Nombre del evento</Label>
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="Maratón San José 2026" className="bg-secondary border-border text-foreground" />
@@ -664,6 +686,44 @@ const AdminDashboard = () => {
               <Label className="text-foreground text-sm">Ubicación</Label>
               <Input value={newLocation} onChange={(e) => setNewLocation(e.target.value)} placeholder="San José, Costa Rica" className="bg-secondary border-border text-foreground" />
             </div>
+
+            {/* Payment Settings */}
+            <div className="border-t border-border pt-3 mt-3">
+              <p className="text-sm font-display font-semibold text-foreground mb-2 flex items-center gap-1.5">
+                💰 Configuración de pagos
+              </p>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-foreground text-sm">Número SINPE Móvil</Label>
+                  <Input value={newSinpePhone} onChange={(e) => setNewSinpePhone(e.target.value)} placeholder="89406622" className="bg-secondary border-border text-foreground" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm">Banco</Label>
+                    <Input value={newBankName} onChange={(e) => setNewBankName(e.target.value)} placeholder="Banco de Costa Rica" className="bg-secondary border-border text-foreground" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm">Titular</Label>
+                    <Input value={newBankHolder} onChange={(e) => setNewBankHolder(e.target.value)} placeholder="Plusspaz CR" className="bg-secondary border-border text-foreground" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-foreground text-sm">Cuenta IBAN</Label>
+                  <Input value={newBankAccount} onChange={(e) => setNewBankAccount(e.target.value)} placeholder="CR00000000000000000000" className="bg-secondary border-border text-foreground" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm">Tipo de cuenta</Label>
+                    <Input value={newBankType} onChange={(e) => setNewBankType(e.target.value)} placeholder="Cuenta corriente colones" className="bg-secondary border-border text-foreground" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm">Cédula</Label>
+                    <Input value={newBankCedula} onChange={(e) => setNewBankCedula(e.target.value)} placeholder="0-0000-0000" className="bg-secondary border-border text-foreground" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-display">
               {editingEvent ? "Guardar cambios" : "Crear evento"}
             </Button>
