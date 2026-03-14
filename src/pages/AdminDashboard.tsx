@@ -189,6 +189,12 @@ const AdminDashboard = () => {
     setNewDate(evt.date);
     setNewLocation(evt.location || "");
     setNewPrice(String(evt.price_per_photo));
+    setNewSinpePhone((evt as any).sinpe_phone || "89406622");
+    setNewBankName((evt as any).bank_name || "Banco de Costa Rica");
+    setNewBankHolder((evt as any).bank_account_holder || "Plusspaz CR");
+    setNewBankAccount((evt as any).bank_account_number || "");
+    setNewBankType((evt as any).bank_account_type || "Cuenta corriente colones");
+    setNewBankCedula((evt as any).bank_cedula || "");
     setShowNewEvent(true);
   };
 
@@ -200,6 +206,12 @@ const AdminDashboard = () => {
     setNewDate("");
     setNewLocation("");
     setNewPrice("2.00");
+    setNewSinpePhone("89406622");
+    setNewBankName("Banco de Costa Rica");
+    setNewBankHolder("Plusspaz CR");
+    setNewBankAccount("");
+    setNewBankType("Cuenta corriente colones");
+    setNewBankCedula("");
   };
 
   const handleEventSubmit = async (e: React.FormEvent) => {
