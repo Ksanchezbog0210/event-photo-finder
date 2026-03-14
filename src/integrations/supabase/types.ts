@@ -237,6 +237,41 @@ export type Database = {
           },
         ]
       }
+      search_rate_limits: {
+        Row: {
+          client_ip: string
+          event_id: string
+          first_search_at: string
+          id: string
+          last_search_at: string
+          search_count: number
+        }
+        Insert: {
+          client_ip: string
+          event_id: string
+          first_search_at?: string
+          id?: string
+          last_search_at?: string
+          search_count?: number
+        }
+        Update: {
+          client_ip?: string
+          event_id?: string
+          first_search_at?: string
+          id?: string
+          last_search_at?: string
+          search_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_rate_limits_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       search_requests: {
         Row: {
           client_name: string | null
@@ -301,6 +336,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_search_requests: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
