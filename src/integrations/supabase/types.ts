@@ -61,6 +61,11 @@ export type Database = {
       events: {
         Row: {
           admin_id: string
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_account_type: string | null
+          bank_cedula: string | null
+          bank_name: string | null
           code: string
           created_at: string
           currency: string
@@ -72,10 +77,16 @@ export type Database = {
           location: string | null
           name: string
           price_per_photo: number
+          sinpe_phone: string | null
           updated_at: string
         }
         Insert: {
           admin_id: string
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_account_type?: string | null
+          bank_cedula?: string | null
+          bank_name?: string | null
           code: string
           created_at?: string
           currency?: string
@@ -87,10 +98,16 @@ export type Database = {
           location?: string | null
           name: string
           price_per_photo?: number
+          sinpe_phone?: string | null
           updated_at?: string
         }
         Update: {
           admin_id?: string
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_account_type?: string | null
+          bank_cedula?: string | null
+          bank_name?: string | null
           code?: string
           created_at?: string
           currency?: string
@@ -102,6 +119,7 @@ export type Database = {
           location?: string | null
           name?: string
           price_per_photo?: number
+          sinpe_phone?: string | null
           updated_at?: string
         }
         Relationships: []
