@@ -11,33 +11,41 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
+interface BankInfo {
+  bank: string;
+  accountHolder: string;
+  accountNumber: string;
+  accountType: string;
+  cedula: string;
+}
+
 interface PaymentModalProps {
   open: boolean;
   onClose: () => void;
   photoCount: number;
   totalAmount: number;
   sinpePhone: string;
+  bankInfo?: BankInfo;
   onConfirm: (clientName: string, clientPhone: string, proofFile: File | null) => void;
 }
 
 type PaymentMethod = "sinpe" | "transfer";
 
-// Información bancaria BCR (personalizable)
-const BANK_INFO = {
-  bank: "Banco de Costa Rica",
-  accountHolder: "Plusspaz CR",
-  accountNumber: "", // Se llenará cuando tengas la cuenta
-  accountType: "Cuenta corriente colones",
-  cedula: "", // Cédula jurídica o física
-};
-
-const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onConfirm }: PaymentModalProps) => {
+const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, bankInfo, onConfirm }: PaymentModalProps) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("sinpe");
+
+  const bank = bankInfo || {
+    bank: "Banco de Costa Rica",
+    accountHolder: "Plusspaz CR",
+    accountNumber: "",
+    accountType: "Cuenta corriente colones",
+    cedula: "",
+  };
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -109,7 +117,7 @@ const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onCo
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Nombre</span>
-                <span className="text-sm text-foreground">Plusspaz</span>
+                <span className="text-sm text-foreground">{bank.accountHolder}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Monto</span>
@@ -123,27 +131,41 @@ const PaymentModal = ({ open, onClose, photoCount, totalAmount, sinpePhone, onCo
             <div className="glass-card p-4 space-y-3 animate-fade-up">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Banco</span>
-                <span className="text-sm text-foreground">{BANK_INFO.bank}</span>
+                <span className="text-sm text-foreground">{bank.bank}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Titular</span>
-                <span className="text-sm text-foreground">{BANK_INFO.accountHolder}</span>
+                <span className="text-sm text-foreground">{bank.accountHolder}</span>
               </div>
-              {BANK_INFO.accountNumber ? (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Cuenta IBAN</span>
-                  <button
-                    onClick={() => copyToClipboard(BANK_INFO.accountNumber, "account")}
-                    className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
-                  >
-                    {copiedField === "account" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                    {copiedField === "account" ? "Copiado" : "Copiar IBAN"}
-                  </button>
-                </div>
+              {bank.accountNumber ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Cuenta IBAN</span>
+                    <button
+                      onClick={() => copyToClipboard(bank.accountNumber, "account")}
+                      className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
+                    >
+                      {copiedField === "account" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copiedField === "account" ? "Copiado" : "Copiar IBAN"}
+                    </button>
+                  </div>
+                  {bank.accountType && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Tipo</span>
+                      <span className="text-sm text-foreground">{bank.accountType}</span>
+                    </div>
+                  )}
+                  {bank.cedula && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Cédula</span>
+                      <span className="text-sm text-foreground">{bank.cedula}</span>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="rounded-lg bg-muted/50 p-2">
                   <p className="text-xs text-muted-foreground text-center">
-                    🏦 Próximamente — Cuenta BCR en configuración
+                    🏦 El fotógrafo no ha configurado cuenta bancaria aún
                   </p>
                 </div>
               )}
