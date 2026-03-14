@@ -70,6 +70,12 @@ const AdminDashboard = () => {
   const [newDate, setNewDate] = useState("");
   const [newLocation, setNewLocation] = useState("");
   const [newPrice, setNewPrice] = useState("2.00");
+  const [newSinpePhone, setNewSinpePhone] = useState("89406622");
+  const [newBankName, setNewBankName] = useState("Banco de Costa Rica");
+  const [newBankHolder, setNewBankHolder] = useState("Plusspaz CR");
+  const [newBankAccount, setNewBankAccount] = useState("");
+  const [newBankType, setNewBankType] = useState("Cuenta corriente colones");
+  const [newBankCedula, setNewBankCedula] = useState("");
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
