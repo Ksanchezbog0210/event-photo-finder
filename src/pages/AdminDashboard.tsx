@@ -663,7 +663,7 @@ const AdminDashboard = () => {
               {editingEvent ? "Modifica los detalles del evento" : "Crea un evento y comparte el código con tus clientes"}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEventSubmit} className="space-y-3">
+          <form onSubmit={handleEventSubmit} className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
             <div className="space-y-1.5">
               <Label className="text-foreground text-sm">Nombre del evento</Label>
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="Maratón San José 2026" className="bg-secondary border-border text-foreground" />
@@ -686,6 +686,44 @@ const AdminDashboard = () => {
               <Label className="text-foreground text-sm">Ubicación</Label>
               <Input value={newLocation} onChange={(e) => setNewLocation(e.target.value)} placeholder="San José, Costa Rica" className="bg-secondary border-border text-foreground" />
             </div>
+
+            {/* Payment Settings */}
+            <div className="border-t border-border pt-3 mt-3">
+              <p className="text-sm font-display font-semibold text-foreground mb-2 flex items-center gap-1.5">
+                💰 Configuración de pagos
+              </p>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-foreground text-sm">Número SINPE Móvil</Label>
+                  <Input value={newSinpePhone} onChange={(e) => setNewSinpePhone(e.target.value)} placeholder="89406622" className="bg-secondary border-border text-foreground" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm">Banco</Label>
+                    <Input value={newBankName} onChange={(e) => setNewBankName(e.target.value)} placeholder="Banco de Costa Rica" className="bg-secondary border-border text-foreground" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm">Titular</Label>
+                    <Input value={newBankHolder} onChange={(e) => setNewBankHolder(e.target.value)} placeholder="Plusspaz CR" className="bg-secondary border-border text-foreground" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-foreground text-sm">Cuenta IBAN</Label>
+                  <Input value={newBankAccount} onChange={(e) => setNewBankAccount(e.target.value)} placeholder="CR00000000000000000000" className="bg-secondary border-border text-foreground" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm">Tipo de cuenta</Label>
+                    <Input value={newBankType} onChange={(e) => setNewBankType(e.target.value)} placeholder="Cuenta corriente colones" className="bg-secondary border-border text-foreground" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm">Cédula</Label>
+                    <Input value={newBankCedula} onChange={(e) => setNewBankCedula(e.target.value)} placeholder="0-0000-0000" className="bg-secondary border-border text-foreground" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-display">
               {editingEvent ? "Guardar cambios" : "Crear evento"}
             </Button>
