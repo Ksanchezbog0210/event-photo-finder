@@ -151,6 +151,13 @@ const EventPage = () => {
         return;
       }
 
+      if (data?.rateLimited) {
+        toast.error(data.error);
+        setIsProcessing(false);
+        setView("gallery");
+        return;
+      }
+
       if (data?.error) {
         toast.error(data.error);
         setIsProcessing(false);
