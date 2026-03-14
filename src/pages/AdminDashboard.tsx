@@ -218,14 +218,22 @@ const AdminDashboard = () => {
     e.preventDefault();
     if (!user) return;
 
+    const eventPayload: any = {
+      name: newName,
+      code: newCode.toUpperCase(),
+      date: newDate,
+      location: newLocation,
+      price_per_photo: parseFloat(newPrice),
+      sinpe_phone: newSinpePhone,
+      bank_name: newBankName,
+      bank_account_holder: newBankHolder,
+      bank_account_number: newBankAccount,
+      bank_account_type: newBankType,
+      bank_cedula: newBankCedula,
+    };
+
     if (editingEvent) {
-      const { error } = await supabase.from("events").update({
-        name: newName,
-        code: newCode.toUpperCase(),
-        date: newDate,
-        location: newLocation,
-        price_per_photo: parseFloat(newPrice),
-      }).eq("id", editingEvent.id);
+      const { error } = await supabase.from("events").update(eventPayload).eq("id", editingEvent.id);
       if (error) {
         toast.error(error.message);
         return;
@@ -234,11 +242,7 @@ const AdminDashboard = () => {
     } else {
       const { error } = await supabase.from("events").insert({
         admin_id: user.id,
-        name: newName,
-        code: newCode.toUpperCase(),
-        date: newDate,
-        location: newLocation,
-        price_per_photo: parseFloat(newPrice),
+        ...eventPayload,
       });
       if (error) {
         toast.error(error.message);
