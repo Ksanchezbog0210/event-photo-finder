@@ -166,6 +166,48 @@ export type Database = {
           },
         ]
       }
+      face_embeddings: {
+        Row: {
+          created_at: string
+          embedding: string
+          event_id: string
+          face_index: number
+          id: string
+          photo_id: string
+        }
+        Insert: {
+          created_at?: string
+          embedding: string
+          event_id: string
+          face_index?: number
+          id?: string
+          photo_id: string
+        }
+        Update: {
+          created_at?: string
+          embedding?: string
+          event_id?: string
+          face_index?: number
+          id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "face_embeddings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "face_embeddings_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "event_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -361,6 +403,19 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_face_embeddings: {
+        Args: {
+          match_count?: number
+          match_event_id: string
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          face_index: number
+          photo_id: string
+          similarity: number
+        }[]
       }
     }
     Enums: {
